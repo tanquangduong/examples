@@ -13,11 +13,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables from .env.local
-env_path = Path(__file__).parent.parent / '.env.local'
+env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(env_path)
-
-# Set API keys from environment
-ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
 # Initialize clients
 qdrant_client = QdrantClient(
@@ -86,11 +83,10 @@ class SearchMeetingsTool(BaseTool):
 
 class MeetingAnalysisTool(BaseTool):
     name: str = "analyze_meeting"
-    description: str = "Analyze meeting content using Claude"
+    description: str = "Analyze meeting content using OpenAI"
     args_schema: Type[BaseModel] = AnalysisInput
 
     def _run(self, meeting_data: dict) -> Dict:
-        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
         
         # Check if we received a list of meetings in the meetings key
         meetings = meeting_data.get('meetings', [])
@@ -120,16 +116,26 @@ class MeetingAnalysisTool(BaseTool):
         5. Recommendations for follow-up
         """
         
-        message = client.messages.create(
-            model="claude-3-sonnet-20240229",
-            max_tokens=1000,
-            temperature=0,
-            messages=[{"role": "user", "content": prompt}]
+        # message = client.messages.create(
+        #     model="claude-3-sonnet-20240229",
+        #     max_tokens=1000,
+        #     temperature=0,
+        #     messages=[{"role": "user", "content": prompt}]
+        # )
+
+        message = openai_client.responses.create(
+            model="gpt-4.1",
+            input=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
         )
         
         return {
             "meetings_analyzed": len(meetings),
-            "analysis": message.content,
+            "analysis": message.output_text,
             "timestamp": datetime.now().isoformat()
         }
 

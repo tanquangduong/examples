@@ -12,7 +12,7 @@ import base64
 from openai import OpenAI
 
 # Load environment variables
-env_path = Path(__file__).parent.parent / '.env.local'
+env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(env_path)
 
 # Set OpenAI key explicitly in environment with correct name
